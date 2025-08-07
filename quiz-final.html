@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест: Формула идеального промпта</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .option-button {
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .option-correct {
+            background-color: #e7f7ef !important;
+            border-color: #34d399 !important;
+        }
+        .option-incorrect {
+            background-color: #fdeeee !important;
+            border-color: #f87171 !important;
+        }
+        .rationale {
+            padding: 12px;
+            margin-top: 8px;
+            border-left-width: 4px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.875rem;
+        }
+        .rationale-correct {
+            background-color: #f0fdf4;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+        .rationale-incorrect {
+            background-color: #fef2f2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-2xl mx-auto">
+
+            <div id="quiz-view">
+                <div class="mb-6">
+                    <p id="progress-text" class="text-sm font-medium text-gray-500 mb-2">Вопрос 1 из 10</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 10%;"></div>
+                    </div>
+                </div>
+                <h2 id="question-text" class="text-xl sm:text-2xl font-bold text-gray-800 mb-6 min-h-[6rem]"></h2>
+                <div id="answer-options" class="space-y-3"></div>
+                <button id="next-button" class="mt-8 w-full bg-blue-600 text-white font-semibold py-3.5 px-4 rounded-xl hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed shadow-sm">
+                    Следующий вопрос
+                </button>
+            </div>
+
+            <div id="result-view" class="hidden text-center">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Тест завершен!</h2>
+                <p class="text-lg text-gray-600 mb-2">Ваш результат:</p>
+                <p id="score-text" class="text-6xl font-bold text-blue-600 my-4">0/10</p>
+                <p id="feedback-message" class="text-gray-700 mb-8 px-4"></p>
+                <button id="restart-button" class="w-full bg-blue-600 text-white font-semibold py-3.5 px-4 rounded-xl hover:bg-blue-700 transition-colors shadow-sm">
+                    Пройти еще раз
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const quizData = {
+          "questions": [
+            {
+              "question": "В промпте: \"Напиши три идеи для поста в соцсетях для кофейни в виде списка\", какой компонент формулы \"РОЛЬ + ЗАДАЧА + КОНТЕКСТ + ФОРМАТ\" отсутствует?",
+              "hint": "Подумайте, кем должна представить себя нейросеть, чтобы дать наиболее релевантный ответ.",
+              "answerOptions": [
+                { "text": "РОЛЬ", "rationale": "В промпте не указано, с какой точки зрения (например, маркетолога или бариста) нейросеть должна генерировать идеи.", "isCorrect": true },
+                { "text": "ЗАДАЧА", "rationale": "Задача \"напиши три идеи для поста\" сформулирована четко и ясно.", "isCorrect": false },
+                { "text": "КОНТЕКСТ", "rationale": "Контекст \"для кофейни\" предоставлен, что помогает сузить тему.", "isCorrect": false },
+                { "text": "ФОРМАТ", "rationale": "Формат \"в виде списка\" четко определен, что структурирует вывод.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Какой из этих промптов является наиболее эффективным для получения сценария рекламного ролика?",
+              "hint": "Самый лучший промпт содержит все четыре элемента формулы.",
+              "answerOptions": [
+                { "text": "Напиши сценарий для ролика.", "rationale": "Этот промпт слишком общий, в нем отсутствуют роль, контекст и требования к формату.", "isCorrect": false },
+                { "text": "Напиши сценарий для рекламного ролика про новые кроссовки.", "rationale": "Здесь есть задача и базовый контекст, но нет роли и требований к формату, что может привести к общему результату.", "isCorrect": false },
+                { "text": "Представь, что ты креативный директор. Напиши сценарий для 15-секундного рекламного ролика про новые беговые кроссовки 'SprintX', ориентированный на молодых атлетов. Ответ дай в виде таблицы из трех сцен.", "rationale": "Этот промпт включает все четыре компонента: роль (креативный директор), задачу (напиши сценарий), контекст (15 секунд, кроссовки 'SprintX', молодые атлеты) и формат (таблица из трех сцен).", "isCorrect": true },
+                { "text": "Как креативный директор, придумай что-нибудь про кроссовки 'SprintX'.", "rationale": "Хотя роль задана, задача \"придумай что-нибудь\" очень расплывчата и не указывает на желаемый результат.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "В промпте `Представь, что ты финансовый консультант. Объясни простыми словами, что такое диверсификация портфеля, для человека, который никогда не инвестировал.`, какая часть является \"КОНТЕКСТОМ\"?",
+              "hint": "Контекст предоставляет важные детали о ситуации или аудитории.",
+              "answerOptions": [
+                { "text": "Представь, что ты финансовый консультант", "rationale": "Эта часть определяет, кем должна быть нейросеть, то есть задает роль.", "isCorrect": false },
+                { "text": "Объясни простыми словами, что такое диверсификация портфеля", "rationale": "Это прямое указание на то, что нужно сделать, то есть задача.", "isCorrect": false },
+                { "text": "для человека, который никогда не инвестировал", "rationale": "Эта деталь описывает целевую аудиторию и ситуацию, что помогает нейросети адаптировать сложность и стиль ответа.", "isCorrect": true },
+                { "text": "простыми словами", "rationale": "Это уточнение относится к формату и стилю изложения, а не к общей ситуации.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Какая основная цель компонента \"РОЛЬ\" в промпте?",
+              "hint": "Подумайте, как меняется ответ, если его дает \"учитель\" или \"комик\".",
+              "answerOptions": [
+                { "text": "Указать точное количество требуемых пунктов в ответе.", "rationale": "За количество пунктов и структуру ответа отвечает компонент \"ФОРМАТ\".", "isCorrect": false },
+                { "text": "Задать тон, стиль и глубину экспертности ответа.", "rationale": "Назначение роли помогает нейросети понять, с какой точки зрения и в каком стиле следует отвечать.", "isCorrect": true },
+                { "text": "Описать целевую аудиторию, для которой предназначен ответ.", "rationale": "Описание аудитории является частью компонента \"КОНТЕКСТ\".", "isCorrect": false },
+                { "text": "Сформулировать основное действие, которое должна выполнить нейросеть.", "rationale": "Основное действие определяется компонентом \"ЗАДАЧА\".", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Пользователь хочет получить от нейросети список рецептов для ужина. Какой промпт будет НАИМЕНЕЕ эффективным?",
+              "hint": "Наименее эффективный промпт обычно самый короткий и неопределенный.",
+              "answerOptions": [
+                { "text": "Предложи рецепты", "rationale": "Этот промпт максимально неэффективен, так как в нем нет ни роли, ни контекста (какие продукты, какая кухня, на сколько человек), ни формата.", "isCorrect": true },
+                { "text": "Дай 5 идей для быстрого ужина из курицы.", "rationale": "Этот промпт уже содержит задачу, контекст и формат, что делает его достаточно эффективным.", "isCorrect": false },
+                { "text": "Представь, что ты шеф-повар. Предложи 3 рецепта здорового ужина, которые можно приготовить за 30 минут. Оформи в виде списка с ингредиентами и пошаговой инструкцией.", "rationale": "Это почти идеальный промпт, включающий все четыре компонента для получения точного результата.", "isCorrect": false },
+                { "text": "Какие есть рецепты ужинов?", "rationale": "Хотя этот промпт лучше, чем просто \"Предложи рецепты\", он все еще слишком общий и не дает нейросети достаточно информации.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Какой компонент формулы отвечает за структуру и внешний вид ответа (например, \"в виде таблицы\" или \"в виде списка\")?",
+              "hint": "Этот компонент определяет, как будет \"упакован\" результат.",
+              "answerOptions": [
+                { "text": "РОЛЬ", "rationale": "Роль определяет стиль и тон ответа, а не его структуру.", "isCorrect": false },
+                { "text": "ЗАДАЧА", "rationale": "Задача определяет, *что* делать, а не *как* это оформить.", "isCorrect": false },
+                { "text": "КОНТЕКСТ", "rationale": "Контекст предоставляет детали о ситуации, но не о визуальном представлении ответа.", "isCorrect": false },
+                { "text": "ФОРМАТ", "rationale": "Именно компонент \"ФОРМАТ\" используется для указания требований к структуре вывода, будь то список, таблица, код или просто текст определенной длины.", "isCorrect": true }
+              ]
+            },
+            {
+              "question": "Вы написали промпт: `Напиши письмо другу`. Нейросеть выдала очень формальный текст. Какой компонент нужно было добавить, чтобы сделать тон письма более дружелюбным?",
+              "hint": "Как бы вы попросили написать письмо, если бы хотели, чтобы оно звучало как от лучшего друга?",
+              "answerOptions": [
+                { "text": "Добавить контекст, например: `Напиши письмо другу о поездке на море`.", "rationale": "Добавление контекста сделает письмо более содержательным, но не обязательно изменит его формальный тон.", "isCorrect": false },
+                { "text": "Добавить роль, например: `Представь, что ты пишешь своему лучшему другу`.", "rationale": "Указание роли и отношений между отправителем и получателем напрямую влияет на тон и стиль письма, делая его более неформальным.", "isCorrect": true },
+                { "text": "Изменить формат, например: `Напиши письмо другу в виде трех абзацев`.", "rationale": "Указание формата повлияет на структуру, но не на эмоциональную окраску текста.", "isCorrect": false },
+                { "text": "Уточнить задачу, например: `Напиши веселое письмо другу`.", "rationale": "Хотя уточнение задачи (\"веселое\") может помочь, указание роли (\"как лучшему другу\") дает нейросети более фундаментальное понимание нужного стиля.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Что из перечисленного является лучшим примером компонента \"ЗАДАЧА\"?",
+              "hint": "Задача — это всегда глагол действия, прямое указание, что нужно сделать.",
+              "answerOptions": [
+                { "text": "Ты — опытный копирайтер.", "rationale": "Это пример компонента \"РОЛЬ\".", "isCorrect": false },
+                { "text": "Для моего блога о путешествиях.", "rationale": "Это пример компонента \"КОНТЕКСТ\".", "isCorrect": false },
+                { "text": "Составь сравнительную таблицу.", "rationale": "Это четкое, глагольное указание на конкретное действие, которое должна выполнить нейросеть.", "isCorrect": true },
+                { "text": "В виде маркированного списка.", "rationale": "Это пример компонента \"ФОРМАТ\".", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Промпт `Напиши 5 идей для стартапа в сфере экологии` является хорошим, но что можно добавить, чтобы сделать его еще лучше и получить более креативные ответы?",
+              "hint": "Подумайте, чья точка зрения или экспертиза могла бы обогатить идеи.",
+              "answerOptions": [
+                { "text": "Указать формат: `в виде нумерованного списка`.", "rationale": "Это улучшит структуру, но не обязательно креативность самих идей.", "isCorrect": false },
+                { "text": "Добавить роль: `Представь, что ты инноватор из Кремниевой долины`.", "rationale": "Добавление креативной и экспертной роли стимулирует нейросеть генерировать более нестандартные и глубокие идеи.", "isCorrect": true },
+                { "text": "Увеличить количество идей: `Напиши 10 идей`.", "rationale": "Увеличение количества не гарантирует повышения качества или креативности.", "isCorrect": false },
+                { "text": "Убрать контекст: `Напиши 5 идей для стартапа`.", "rationale": "Удаление контекста сделает результат менее сфокусированным и, скорее всего, менее полезным.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Почему в промптах важно избегать двусмысленности и использовать максимально точные формулировки?",
+              "hint": "Вспомните аналогию с джинном из бутылки.",
+              "answerOptions": [
+                { "text": "Чтобы запутать нейросеть и получить неожиданный результат.", "rationale": "Цель эффективного промптинга — получить предсказуемый и релевантный результат, а не случайный.", "isCorrect": false },
+                { "text": "Потому что нейросети понимают команды буквально и не умеют \"читать между строк\".", "rationale": "ИИ не обладает человеческим сознанием и интерпретирует запрос строго в соответствии с полученными словами, поэтому точность формулировок критически важна.", "isCorrect": true },
+                { "text": "Чтобы сделать промпт короче и сэкономить время.", "rationale": "Иногда более длинный и точный промпт экономит больше времени в итоге, так как не требует уточнений и исправлений.", "isCorrect": false },
+                { "text": "Это не важно, современные нейросети понимают любой стиль общения.", "rationale": "Хотя нейросети стали лучше понимать естественный язык, точность и ясность запроса по-прежнему являются ключом к получению качественного ответа.", "isCorrect": false }
+              ]
+            }
+          ]
+        };
+
+        const quizView = document.getElementById('quiz-view');
+        const resultView = document.getElementById('result-view');
+        const questionText = document.getElementById('question-text');
+        const answerOptionsContainer = document.getElementById('answer-options');
+        const nextButton = document.getElementById('next-button');
+        const restartButton = document.getElementById('restart-button');
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreText = document.getElementById('score-text');
+        const feedbackMessage = document.getElementById('feedback-message');
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let questions = [];
+        let answerSelected = false;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            answerSelected = false;
+            questions = [...quizData.questions];
+            shuffleArray(questions);
+            
+            resultView.classList.add('hidden');
+            quizView.classList.remove('hidden');
+            
+            nextButton.textContent = 'Следующий вопрос';
+            
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            answerSelected = false;
+            const currentQuestion = questions[currentQuestionIndex];
+            const questionNumber = currentQuestionIndex + 1;
+
+            progressText.innerText = `Вопрос ${questionNumber} из ${questions.length}`;
+            progressBar.style.width = `${(questionNumber / questions.length) * 100}%`;
+            questionText.innerText = currentQuestion.question;
+            
+            answerOptionsContainer.innerHTML = '';
+            
+            const shuffledOptions = [...currentQuestion.answerOptions];
+            shuffleArray(shuffledOptions);
+
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.innerText = option.text;
+                button.classList.add('w-full', 'text-left', 'p-4', 'border-2', 'border-gray-300', 'rounded-xl', 'hover:bg-gray-100', 'option-button');
+                
+                button.addEventListener('click', () => selectAnswer(button, option, shuffledOptions));
+                
+                answerOptionsContainer.appendChild(button);
+            });
+
+            nextButton.disabled = true;
+        }
+
+        function selectAnswer(selectedButton, selectedOption, allOptions) {
+            if (answerSelected) return;
+            answerSelected = true;
+
+            if (selectedOption.isCorrect) {
+                score++;
+            }
+
+            Array.from(answerOptionsContainer.children).forEach((button, index) => {
+                const option = allOptions.find(o => o.text === button.innerText);
+                
+                button.disabled = true;
+                
+                if (option.isCorrect) {
+                    button.classList.add('option-correct');
+                } else if (button === selectedButton) {
+                    button.classList.add('option-incorrect');
+                }
+
+                const rationaleDiv = document.createElement('div');
+                rationaleDiv.innerText = option.rationale;
+                rationaleDiv.classList.add('rationale');
+                rationaleDiv.classList.add(option.isCorrect ? 'rationale-correct' : 'rationale-incorrect');
+                button.after(rationaleDiv);
+            });
+
+            nextButton.disabled = false;
+            if (currentQuestionIndex === questions.length - 1) {
+                nextButton.textContent = 'Показать результат';
+            }
+        }
+
+        function showResults() {
+            quizView.classList.add('hidden');
+            resultView.classList.remove('hidden');
+            scoreText.innerText = `${score}/${questions.length}`;
+
+            const percentage = (score / questions.length) * 100;
+            if (percentage >= 80) {
+                feedbackMessage.innerText = "Отличный результат! Вы прекрасно разбираетесь в составлении промптов.";
+            } else if (percentage >= 50) {
+                feedbackMessage.innerText = "Хорошая работа! Еще немного практики, и вы станете экспертом.";
+            } else {
+                feedbackMessage.innerText = "Неплохое начало! Попробуйте еще раз, чтобы закрепить материал.";
+            }
+        }
+
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        });
+
+        restartButton.addEventListener('click', startQuiz);
+
+        startQuiz();
+    });
+    </script>
+</body>
+</html>
