@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест: Визуальная Магия</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .option-button {
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .option-correct {
+            background-color: #e7f7ef !important;
+            border-color: #34d399 !important;
+        }
+        .option-incorrect {
+            background-color: #fdeeee !important;
+            border-color: #f87171 !important;
+        }
+        .rationale {
+            padding: 12px;
+            margin-top: 8px;
+            border-left-width: 4px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.875rem;
+        }
+        .rationale-correct {
+            background-color: #f0fdf4;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+        .rationale-incorrect {
+            background-color: #fef2f2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-2xl mx-auto">
+
+            <div id="quiz-view">
+                <div class="mb-6">
+                    <p id="progress-text" class="text-sm font-medium text-gray-500 mb-2">Вопрос 1 из 10</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 10%;"></div>
+                    </div>
+                </div>
+                <h2 id="question-text" class="text-xl sm:text-2xl font-bold text-gray-800 mb-6 min-h-[6rem]"></h2>
+                <div id="answer-options" class="space-y-3"></div>
+                <button id="next-button" class="mt-8 w-full bg-blue-600 text-white font-semibold py-3.5 px-4 rounded-xl hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed shadow-sm">
+                    Следующий вопрос
+                </button>
+            </div>
+
+            <div id="result-view" class="hidden text-center">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Тест завершен!</h2>
+                <p class="text-lg text-gray-600 mb-2">Ваш результат:</p>
+                <p id="score-text" class="text-6xl font-bold text-blue-600 my-4">0/10</p>
+                <p id="feedback-message" class="text-gray-700 mb-8 px-4"></p>
+                <button id="restart-button" class="w-full bg-blue-600 text-white font-semibold py-3.5 px-4 rounded-xl hover:bg-blue-700 transition-colors shadow-sm">
+                    Пройти еще раз
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const quizData = {
+          "questions": [
+            {
+              "question": "Вам нужно быстро и бесплатно создать качественную картинку для поста в соцсети на русском языке. Какой инструмент из нашего курса лучше всего подходит для старта?",
+              "answerOptions": [
+                { "text": "Kandinsky", "rationale": "Этот сервис идеально подходит для старта, так как он бесплатный, не требует регистрации и отлично работает с русскоязычными запросами.", "isCorrect": true },
+                { "text": "Midjourney", "rationale": "Midjourney — это профессиональный и платный инструмент, который не является лучшим выбором для быстрого и бесплатного старта.", "isCorrect": false },
+                { "text": "Krea AI", "rationale": "Krea AI хорош для поиска идей по наброскам, но для генерации по точному текстовому запросу Kandinsky часто бывает проще и быстрее.", "isCorrect": false },
+                { "text": "Photoshop", "rationale": "Photoshop — это графический редактор, а не нейросеть для генерации изображений по тексту.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Какая уникальная особенность у сервиса Krea AI, которую мы разбирали на уроке?",
+              "answerOptions": [
+                { "text": "Генерация изображений в реальном времени по вашим наброскам.", "rationale": "Именно эта функция (real-time generation) отличает Krea AI и делает его мощным инструментом для быстрого поиска композиций и идей.", "isCorrect": true },
+                { "text": "Самое высокое фотореалистичное качество.", "rationale": "Самое высокое качество традиционно ассоциируется с Midjourney.", "isCorrect": false },
+                { "text": "Возможность работать без регистрации.", "rationale": "Для использования Krea AI требуется быстрая регистрация, в отличие от Kandinsky.", "isCorrect": false },
+                { "text": "Лучшее понимание русского языка.", "rationale": "Лучшим пониманием русского языка из рассмотренных нами бесплатных сервисов обладает Kandinsky.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Почему в курсе мы называем Midjourney \"профессиональным\" инструментом?",
+              "answerOptions": [
+                { "text": "Он платный и обеспечивает самое высокое качество и детализацию.", "rationale": "Сочетание платной подписки и лидирующего на рынке качества делает его стандартом для профессионального использования.", "isCorrect": true },
+                { "text": "Он единственный, кто может создавать реалистичные фотографии.", "rationale": "Другие нейросети, включая Kandinsky, также могут создавать фотореалистичные изображения.", "isCorrect": false },
+                { "text": "Он работает быстрее всех.", "rationale": "Скорость генерации не является его главным и уникальным преимуществом.", "isCorrect": false },
+                { "text": "Он полностью бесплатный.", "rationale": "Midjourney является платным сервисом, что и отличает его от стартовых инструментов.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Вы хотите создать простой логотип для кофейни. Какие ключевые слова в промпте будут наиболее подходящими?",
+              "answerOptions": [
+                { "text": "`минимализм, векторная графика, плоский дизайн`", "rationale": "Эти слова точно описывают стиль современных логотипов: простые, чистые и масштабируемые.", "isCorrect": true },
+                { "text": "`фотореализм, 8k, студийный свет`", "rationale": "Эти слова используются для создания реалистичных фотографий, а не логотипов.", "isCorrect": false },
+                { "text": "`детская иллюстрация, акварель, в стиле Disney`", "rationale": "Эти слова задают художественный, но не логотипный стиль.", "isCorrect": false },
+                { "text": "`кинематографичный, темный фон, драма`", "rationale": "Этот набор слов подходит для создания атмосферных сцен, но не для логотипа.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Каким был первый шаг в Уроке 10, когда мы начали создавать картинки для нашего финального проекта?",
+              "answerOptions": [
+                { "text": "Открыть сценарий, написанный в Модуле 1.", "rationale": "Мы сначала обратились к сценарию, чтобы понять, какие именно сцены нам нужно визуализировать.", "isCorrect": true },
+                { "text": "Сразу выбрать инструмент для генерации.", "rationale": "Выбор инструмента — второй шаг, который следует после понимания задачи.", "isCorrect": false },
+                { "text": "Сгенерировать случайную картинку для вдохновения.", "rationale": "Мы действовали по четкому плану, а не генерировали случайные изображения.", "isCorrect": false },
+                { "text": "Начать анимацию в Runway.", "rationale": "Анимация — это следующий этап, для которого сначала нужно создать статичные изображения.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Какой из этих промптов лучше всего подходит для создания фотореалистичного портрета?",
+              "answerOptions": [
+                { "text": "`портрет пожилого мужчины, седая борода, морщины на лице, студийный свет, фотография, 8k`", "rationale": "Этот промпт содержит множество конкретных деталей, а также ключевые слова (`фотография`, `студийный свет`, `8k`), которые помогают нейросети создать реалистичное изображение.", "isCorrect": true },
+                { "text": "`старый мужчина`", "rationale": "Этот промпт слишком общий и не дает нейросети никаких указаний по стилю и качеству.", "isCorrect": false },
+                { "text": "`нарисуй портрет мужчины`", "rationale": "Слово `нарисуй` может увести нейросеть от фотореализма в сторону иллюстрации.", "isCorrect": false },
+                { "text": "`мужчина, борода, старый, фото`", "rationale": "Это просто набор тегов, а не связное описание, что может привести к непредсказуемому результату.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Для какой задачи Krea AI с его генерацией в реальном времени подходит лучше всего?",
+              "answerOptions": [
+                { "text": "Для быстрого подбора композиции и поиска идей.", "rationale": "Возможность мгновенно видеть, как изменения в наброске влияют на результат, идеальна для экспериментов с композицией.", "isCorrect": true },
+                { "text": "Для создания финальных картинок для печати в высоком разрешении.", "rationale": "Для финального высокого качества лучше подходят другие инструменты, например, Midjourney или Kandinsky.", "isCorrect": false },
+                { "text": "Для добавления текста на изображение.", "rationale": "Krea AI не специализируется на работе с текстом на изображениях.", "isCorrect": false },
+                { "text": "Для анимации изображений.", "rationale": "Для анимации мы использовали другой инструмент — Runway.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Какое главное преимущество Kandinsky для русскоязычного пользователя по сравнению со многими зарубежными аналогами?",
+              "answerOptions": [
+                { "text": "Глубокое понимание русского языка и культурного контекста.", "rationale": "Kandinsky изначально создавался с ориентацией на русский язык, что позволяет ему лучше интерпретировать сложные запросы.", "isCorrect": true },
+                { "text": "Возможность генерировать видео.", "rationale": "В рамках курса мы не рассматривали функцию генерации видео в Kandinsky, фокусируясь на изображениях.", "isCorrect": false },
+                { "text": "Он самый старый и проверенный сервис.", "rationale": "Возраст сервиса не является его ключевым преимуществом.", "isCorrect": false },
+                { "text": "В нем больше стилей, чем где-либо еще.", "rationale": "Хотя стилей много, это не является его уникальным и главным преимуществом для русскоязычной аудитории.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "Что НЕ является ключевым словом для создания 3D-персонажа в стиле мультфильма?",
+              "answerOptions": [
+                { "text": "`акварель`", "rationale": "Акварель — это стиль традиционной живописи, он не имеет отношения к созданию 3D-графики.", "isCorrect": true },
+                { "text": "`3D-рендер`", "rationale": "Это прямое указание на то, что нам нужна трехмерная графика.", "isCorrect": false },
+                { "text": "`в стиле Pixar`", "rationale": "Это отличный способ задать конкретный и узнаваемый стиль 3D-анимации.", "isCorrect": false },
+                { "text": "`персонаж`", "rationale": "Это слово помогает нейросети понять, что главным объектом должен быть одушевленный герой.", "isCorrect": false }
+              ]
+            },
+            {
+              "question": "В практическом уроке мы создавали картинки для проекта \"Умная кружка\". Откуда мы брали идеи для этих картинок?",
+              "answerOptions": [
+                { "text": "Из сценария, который написали в Модуле 1.", "rationale": "Каждая картинка соответствовала одной из трех сцен, описанных в нашем сценарии.", "isCorrect": true },
+                { "text": "Из галереи Kandinsky.", "rationale": "Мы создавали уникальные изображения, а не брали готовые из галереи.", "isCorrect": false },
+                { "text": "Из головы, импровизируя в процессе.", "rationale": "Мы следовали четкому плану, заложенному в сценарии, чтобы получить связную историю.", "isCorrect": false },
+                { "text": "Из PDF-гайда.", "rationale": "PDF-гайд содержал примеры, но не конкретные сцены для нашего проекта.", "isCorrect": false }
+              ]
+            }
+          ]
+        };
+
+        const quizView = document.getElementById('quiz-view');
+        const resultView = document.getElementById('result-view');
+        const questionText = document.getElementById('question-text');
+        const answerOptionsContainer = document.getElementById('answer-options');
+        const nextButton = document.getElementById('next-button');
+        const restartButton = document.getElementById('restart-button');
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreText = document.getElementById('score-text');
+        const feedbackMessage = document.getElementById('feedback-message');
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let questions = [];
+        let answerSelected = false;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            answerSelected = false;
+            questions = [...quizData.questions];
+            shuffleArray(questions);
+            
+            resultView.classList.add('hidden');
+            quizView.classList.remove('hidden');
+            
+            nextButton.textContent = 'Следующий вопрос';
+            
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            answerSelected = false;
+            const currentQuestion = questions[currentQuestionIndex];
+            const questionNumber = currentQuestionIndex + 1;
+
+            progressText.innerText = `Вопрос ${questionNumber} из ${questions.length}`;
+            progressBar.style.width = `${(questionNumber / questions.length) * 100}%`;
+            questionText.innerText = currentQuestion.question;
+            
+            answerOptionsContainer.innerHTML = '';
+            
+            const shuffledOptions = [...currentQuestion.answerOptions];
+            shuffleArray(shuffledOptions);
+
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.innerText = option.text;
+                button.classList.add('w-full', 'text-left', 'p-4', 'border-2', 'border-gray-300', 'rounded-xl', 'hover:bg-gray-100', 'option-button');
+                
+                button.addEventListener('click', () => selectAnswer(button, option, shuffledOptions));
+                
+                answerOptionsContainer.appendChild(button);
+            });
+
+            nextButton.disabled = true;
+        }
+
+        function selectAnswer(selectedButton, selectedOption, allOptions) {
+            if (answerSelected) return;
+            answerSelected = true;
+
+            if (selectedOption.isCorrect) {
+                score++;
+            }
+
+            Array.from(answerOptionsContainer.children).forEach((button, index) => {
+                const option = allOptions.find(o => o.text === button.innerText);
+                
+                button.disabled = true;
+                
+                if (option.isCorrect) {
+                    button.classList.add('option-correct');
+                } else if (button === selectedButton) {
+                    button.classList.add('option-incorrect');
+                }
+
+                const rationaleDiv = document.createElement('div');
+                rationaleDiv.innerText = option.rationale;
+                rationaleDiv.classList.add('rationale');
+                rationaleDiv.classList.add(option.isCorrect ? 'rationale-correct' : 'rationale-incorrect');
+                button.after(rationaleDiv);
+            });
+
+            nextButton.disabled = false;
+            if (currentQuestionIndex === questions.length - 1) {
+                nextButton.textContent = 'Показать результат';
+            }
+        }
+
+        function showResults() {
+            quizView.classList.add('hidden');
+            resultView.classList.remove('hidden');
+            scoreText.innerText = `${score}/${questions.length}`;
+
+            const percentage = (score / questions.length) * 100;
+            if (percentage >= 80) {
+                feedbackMessage.innerText = "Отличный результат! Вы прекрасно разбираетесь в создании AI-изображений.";
+            } else if (percentage >= 50) {
+                feedbackMessage.innerText = "Хорошая работа! Еще немного практики, и вы станете экспертом.";
+            } else {
+                feedbackMessage.innerText = "Неплохое начало! Попробуйте еще раз, чтобы закрепить материал.";
+            }
+        }
+
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        });
+
+        restartButton.addEventListener('click', startQuiz);
+
+        startQuiz();
+    });
+    </script>
+</body>
+</html>
